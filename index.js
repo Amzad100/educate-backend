@@ -26,30 +26,11 @@ async function run() {
         await client.connect();
 
         const classCollection = client.db('educateDb').collection('class');
-        const selectedCollection = client.db('educateDb').collection('selecteds');
 
         app.get('/class', async (req, res) => {
             const result = await classCollection.find().toArray()
             res.send(result)
         })
-
-        // selected collection
-        app.get('/selecteds', async (req, res) => {
-            const email = req.query.email;
-            if (!email) {
-                res.send([])
-            }
-            const query = { email: email }
-            const result = await selectedCollection.find(query).toArray()
-            res.send(result);
-        })
-
-        app.post('/selecteds', async (req, res) => {
-            const item = req.body;
-            const result = await selectedCollection.insertOne(item)
-            res.send(result)
-        })
-
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
