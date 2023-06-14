@@ -1,7 +1,9 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -28,6 +30,15 @@ async function run() {
         const usersCollection = client.db('educateDb').collection('users');
         const classCollection = client.db('educateDb').collection('class');
         const selectedCollection = client.db('educateDb').collection('selecteds');
+
+        app.post('/jwt', (req, res) => {
+            const user = req.body
+            const token = jwt.sign(user, env.process.PAYMENT_SECRET_KEY, {
+                expiresIn: '1h'
+            })
+            res.send({ token })
+        })
+
         //users apis
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray()
@@ -96,6 +107,20 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await selectedCollection.deleteOne(query)
             res.send(result)
+        })
+
+        // create payment intent
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_type: [card]
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
         })
 
         // Send a ping to confirm a successful connection
