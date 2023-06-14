@@ -25,15 +25,30 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
+        const usersCollection = client.db('educateDb').collection('users');
         const classCollection = client.db('educateDb').collection('class');
         const selectedCollection = client.db('educateDb').collection('selecteds');
+        //users apis
+        
 
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email }
+            const existingUser = await usersCollection.findOne(query)
+            if (existingUser) {
+                return res.send({ message: "user already exist" })
+            }
+            const result = await usersCollection.insertOne(user)
+            res.send(result)
+        })
+
+        // class apis
         app.get('/class', async (req, res) => {
             const result = await classCollection.find().toArray()
             res.send(result)
         })
 
-        // selected collection
+        // selected collection apis
         app.get('/selecteds', async (req, res) => {
             const email = req.query.email;
             if (!email) {
