@@ -29,7 +29,10 @@ async function run() {
         const classCollection = client.db('educateDb').collection('class');
         const selectedCollection = client.db('educateDb').collection('selecteds');
         //users apis
-        
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().toArray()
+            res.send(result)
+        })
 
         app.post('/users', async (req, res) => {
             const user = req.body;
